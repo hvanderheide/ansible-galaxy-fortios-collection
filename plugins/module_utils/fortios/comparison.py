@@ -88,8 +88,12 @@ def is_same_comparison(reorder_current, reorder_filtered):
     return True
 
 
-def find_current_values(reorder_current, reorder_filtered):
-    '''Find keyvalues in current according to keys from filtered'''
+def find_current_values(reorder_current, reorder_filtered, first=True):
+    '''Find keyvalues in current according to keys from filtered
+
+    "first" argument signals first iteration and first level of hierarchy, where
+    searching of a matching dist in a list might be required.
+    '''
     result = {}
     for key, value in reorder_filtered.items():
         if isinstance(value, dict):
@@ -98,10 +102,22 @@ def find_current_values(reorder_current, reorder_filtered):
             result[key] = []
             for i in range(len(value)):
                 if isinstance(value[i], dict):
-                    result[key].append(find_current_values(reorder_current[key][i], value[i]))
+                    # Search list of dicts in current for a dict that matches
+                    # all keys, skipping hierarchy
+                    for curr_dict in reorder_current[key]:
+                        temp_dict = {}
+                        match = False
+                        for k,v in value[i].items():
+                            if isinstance(v, (str, int)):
+                                if curr_dict[k] == v:
+                                    match = True
+                                else:
+                                    match = False
+                        if match or not first:
+                            result[key].append(find_current_values(curr_dict, value[i], False))
                 else:
                     result[key].append(reorder_current[key])
-        elif isinstance(value, str):
+        elif isinstance(value, str) or isinstance(value, int):
             result[key] = reorder_current[key]
 
     return result
