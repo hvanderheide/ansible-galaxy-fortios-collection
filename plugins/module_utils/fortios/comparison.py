@@ -73,9 +73,11 @@ def is_same_comparison(reorder_current, reorder_filtered):
             if len(value) != len(reorder_current[key]):
                 return False
             if len(value) and isinstance(value[0], dict):
+                i = 0
                 for current_dict in reorder_current[key]:
-                    if not is_same_comparison(current_dict, value[0]):
+                    if not is_same_comparison(current_dict, value[i]):
                         return False
+                    i += 1
             elif reorder_current[key] != value:
                 return False
         elif isinstance(value, str) and IP_PREFIX.match(value):
